@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="es-MX">
+  <head>
+    <meta charset="utf-8">
+    <title>Consulta de servicios ACE</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="consulta de servicios ACE">
+    <meta name="author" content="Nekorp">
+
+    <!-- Le styles -->
+    <link href="assets/bootstrap/css/bootstrap.css" rel="stylesheet" type="text/css">
+    <style>
+      body {
+        padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
+      }
+    </style>
+    <link href="assets/bootstrap/css/bootstrap-responsive.css" rel="stylesheet" type="text/css">
+	<link href="assets/jquery-ui/css/smoothness/jquery-ui-1.10.3.custom.min.css" rel="stylesheet" type="text/css" />
+	<link href="assets/jtable/themes/metro/blue/jtable.min.css" rel="stylesheet" type="text/css" />
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="js/html5shiv.js"></script>
+    <![endif]-->
+
+  </head>
+  <body>
+	<div class="navbar navbar-inverse navbar-fixed-top">
+		<div class="navbar-inner">
+			<div class="container">
+				<a class="brand">Consulta Servicios ACE</a>
+				<div class="nav-collapse collapse">
+					<ul class="nav">
+						<li class="active"><a href="http://ace-mexico.mx/">Home</a></li>
+					</ul>
+					<div id="loginForm" style="display: none;">
+						<form class="navbar-form pull-right" action="#" method="post">
+							<input type="text" class="input-small" id="idCliente" name="idCliente" placeholder="Id Cliente">
+							<input type="password" class="input-small" id="pswd" name="pswd" placeholder="Password">
+							<button type="button" id ="login" class="btn" data-loading-text="Cargando...">Login</button>
+						</form>
+					</div>
+					<div id="logoutForm" style="display: none;">
+						<form class="navbar-form pull-right" action="#" method="post">
+							<button type="button" id ="logout" class="btn" data-loading-text="Cargando...">Logout</button>
+						</form>
+						<p id ="nombreCliente" class="navbar-text pull-right" style="padding-right:6px"></p>
+					</div>
+				</div>
+			</div>
+		</div>
+    </div>
+
+    <div class="container" style="display: none;" id="consultaServicios">
+		<div id="searchForm">
+			<form class="form-inline" action="servicios.php" method="post">
+				<input type="text" id="fechaInicial" name="fechaInicial" placeholder="Fecha Inicial" >
+				<input type="text" id="fechaFinal" name="fechaFinal" placeholder="Fecha Final" >
+				<button type="button" class="btn btn-primary" id="buscar" data-loading-text="Cargando...">Buscar</button>
+			</form>
+		<div>
+		<div id="tabs">
+			<ul>
+				<li><a href="#tabs-1">Datos Servicio</a></li>
+				<li><a href="#tabs-2">Datos Auto</a></li>
+				<li><a href="#tabs-3">Presupuesto</a></li>
+			</ul>
+			<div id="tabs-1">
+				<div id="DatosServicioContainer"></div>
+			</div>
+			<div id="tabs-2">
+				<div id="DatosAutoContainer"></div>
+			</div>
+			<div id="tabs-3">
+				<div id="PresupuestoContainer"></div>
+			</div>
+		</div>
+		<form class="form-inline" action="reportes/global.php" method="get">
+			<input type="hidden" id="fechaInicialDownloadGlobal" name="fechaInicial">
+			<input type="hidden" id="fechaFinalDownloadGlobal" name="fechaFinal">
+			<button type="submit" class="btn pull-right" id="downloadGlobal" disabled>Descargar</button>
+		</form>
+	</div> <!-- /container -->
+	<script src="assets/jquery/jquery-1.10.0.min.js"></script>
+	<script src="assets/jquery-ui/js/jquery-ui-1.10.3.custom.min.js"></script>
+	<script src="assets/jquery-ui/js/jquery.ui.datepicker-es.js"></script>
+	<script src="assets/bootstrap/js/bootstrap.min.js"></script>
+	<script src="assets/jtable/jquery.jtable.min.js" type="text/javascript"></script>
+	<script src="assets/jtable/localization/jquery.jtable.es.js" type="text/javascript"></script>
+	<script src="assets/cliente_control.js" type="text/javascript"></script>
+  </body>
+</html>
