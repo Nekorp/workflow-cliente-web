@@ -15,17 +15,8 @@
  *  limitations under the License
  */
  
-	//configuracion hardcode del locale seria mejor cambiarlo, pero luego
-	date_default_timezone_set('America/Mexico_City');
-	//configuracion para acceso a los servicios rest del backend
-	class ApiConfig {
-		//local
-		public static $api_base_url = 'http://localhost:8080/api/v1';
-		public static $api_username = 'user';
-		public static $api_password = 'user';
-	}
-	class AdminConfig {
-		public static $admin_user = 'admin';
-		public static $admin_password = 'admin';
-	}
+	$respuesta = array();
+	session_start();
+	unset($_SESSION['admin_cliente_web']);
+	print json_encode($respuesta);
 ?>

@@ -19,14 +19,25 @@
 	session_start();
 	$jTableResult = array();
 	if (isset($_SESSION['idCliente'])) {
-		$idCliente = $_SESSION['idCliente'];
-		$api = new WorkflowAPIClient();
-		//TODO validar entradas
-		$fechaInicial = $_GET['fechaInicial'];
-		$fechaFinal = $_GET['fechaFinal'];
-		$rows = $api->getDatosServicio($idCliente, $fechaInicial, $fechaFinal);
-		$jTableResult['Result'] = "OK";
-		$jTableResult['Records'] = $rows;
+		try {
+			$idCliente = $_SESSION['idCliente'];
+			$api = new WorkflowAPIClient();
+			$fechaInicial = $_GET['fechaInicial'];
+			$fechaFinal = $_GET['fechaFinal'];
+			$rows = $api->getDatosServicio($idCliente, $fechaInicial, $fechaFinal);
+			$jTableResult['Result'] = "OK";
+			$jTableResult['Records'] = $rows;
+		} catch(FechaFueraDeRangoException $e) {
+			$rows = array();
+			$jTableResult['Result'] = "OK";
+			$jTableResult['Records'] = $rows;
+			$jTableResult['mensajeError'] = "Fechas fuera de rango";
+		} catch(FechaInvalidaException $e) {
+			$rows = array();
+			$jTableResult['Result'] = "OK";
+			$jTableResult['Records'] = $rows;
+			$jTableResult['mensajeError'] = "Las fechas no son validas";
+		}
 	} else {
 		$rows = array();
 		$jTableResult['Result'] = "OK";

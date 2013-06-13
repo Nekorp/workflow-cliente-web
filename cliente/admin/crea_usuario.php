@@ -15,27 +15,27 @@
  *  limitations under the License
  */
  
-	include_once "WorkflowAPIClient.php";
+	include_once "AdminAPIService.php";
 	session_start();
 	$jTableResult = array();
-	if (isset($_SESSION['idCliente'])) {
+	if (isset($_SESSION['admin_cliente_web'])) {
 		try {
-			$idCliente = $_SESSION['idCliente'];
-			$api = new WorkflowAPIClient();
-			$fechaInicial = $_GET['fechaInicial'];
-			$fechaFinal = $_GET['fechaFinal'];
-			$rows = $api->getDatosPresupuesto($idCliente, $fechaInicial, $fechaFinal);
+			$api = new AdminAPIService();
+			$usuario = array();
+			$usuario['alias'] = $_GET['alias'];
+			$usuario['idCliente'] = intval($_GET['idCliente']);
+			$usuario['password'] = $_GET['password'];
+			$usuario['status'] = $_GET['status'];
+			$nuevo = $api->crearUsuario($usuario);
 			$jTableResult['Result'] = "OK";
-			$jTableResult['Records'] = $rows;
-		} catch(Exception $e) {
-			$rows = array();
-			$jTableResult['Result'] = "OK";
-			$jTableResult['Records'] = $rows;
+			$jTableResult['Record'] = $nuevo;
+		} catch (AliasRepetidoException $e) {
+			$jTableResult['Result'] = "ERROR";
+			$jTableResult['Message'] = "Alias duplicado";
 		}
 	} else {
 		$rows = array();
-		$jTableResult['Result'] = "OK";
-		$jTableResult['Records'] = $rows;
+		$jTableResult['Result'] = "ERROR";
 	}
 	print json_encode($jTableResult);
 ?>

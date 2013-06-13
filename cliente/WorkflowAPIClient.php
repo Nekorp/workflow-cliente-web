@@ -16,41 +16,75 @@
  */
  
 	include_once "cliente_config.php";
-	include_once "libraries/RESTClient/restclient.php";
+	include_once "util/restclient.php";
+	
+	class CredencialesNoValidasException extends Exception {}
+	class ReporteNoEncontradoException extends Exception {}
+	class FechaFueraDeRangoException extends Exception {}
+	class FechaInvalidaException extends Exception {}
+	
 	class WorkflowAPIClient {
 	
 		private $rest_client;
-		private $link_descarga_pdf = "reportes/servicio.php";
+		private $link_descarga_pdf = "reportes/servicio.php?idServicio=";
 		
 		public function __construct() {
 			$this->rest_client = new RestClient(array(
 				'base_url' => ApiConfig::$api_base_url,
-				'format' => ApiConfig::$api_format,
 				'username' => ApiConfig::$api_username,
 				'password' => ApiConfig::$api_password
 			));
 		}
 		
-		public function validateLogin($idCliente, $pswd) {
-			//todo hacer un servicio para validar al cliente
-			//se podria tener una tabla en el hostweb para relacionar id de clientes, un alias y su password
-			//esa tabla podria editarse directamente con el jTable CRUD
-			//validar un 404 etc
-			$result = $this->rest_client->get('clientes/'.$idCliente);
+		public function validateLogin($usuario, $pswd) {
+			$rawData = $this->rest_client->get('cliente/web/usuarios/'.$usuario);
+			if ($rawData->info->http_code == 404) {
+				throw new CredencialesNoValidasException();
+			}
+			$usuarioWeb = json_decode($rawData->response);
+			if ($usuarioWeb->password != $pswd) {
+				throw new CredencialesNoValidasException();
+			}
+			if ($usuarioWeb->status != 'activo') {
+				throw new CredencialesNoValidasException();
+			}
+			$result = $this->rest_client->get('clientes/'.$usuarioWeb->idCliente);
 			$cliente = json_decode($result->response);
-			return $cliente->nombre;
+			$respuesta = array();
+			$respuesta['display'] = $cliente->nombre.' / '.$usuarioWeb->alias;
+			$respuesta['idCliente'] = $usuarioWeb->idCliente;
+			$respuesta['nombreCliente'] = $cliente->nombre;
+			return $respuesta;
 		}
 		
 		private function getServicios($idCliente, $fechaInicialRaw, $fechaFinalRaw) {
-			//TODO resolver manejo de fechas y zona horaria
-			$fechaInicial = $fechaInicialRaw.'T00:00:00.000-05:00';
-			$fechaFinal = $fechaFinalRaw.'T16:59:59.999-05:00';
-			//TODO optimizar la consulta para traer mas datos de un solo golpe
-			//se disminuyen las vueltas al servidor por el momento son 3xNumReg = sad
+			try {
+				$fechaInicial = new DateTime($fechaInicialRaw);
+				$fechaFinal = new DateTime($fechaFinalRaw);
+				$intervaloFinDia = new DateInterval('PT23H59M59S');
+				$fechaFinal->add($intervaloFinDia);
+				$fechaActual = new DateTime();
+			} catch (Exception $e) {
+				//suponemos que no son fechas validas
+				throw new FechaInvalidaException();
+			}
+			if ($fechaInicial > $fechaActual) {
+				throw new FechaFueraDeRangoException();
+			}
+			if ($fechaFinal > $fechaActual) {
+				if ($fechaFinal->diff($fechaActual)->days > 0) {
+					throw new FechaFueraDeRangoException();
+				}
+			}
+			if ($fechaInicial->diff($fechaActual)->days > 30 || $fechaFinal->diff($fechaActual)->days > 30) {
+				throw new FechaFueraDeRangoException();
+			}
+			//TODO optimizar la consulta para traer mas datos en cada consulta
+			//hay que disminuir las vueltas al servidor por el momento son 3xNumReg = muy horrible
 			$paramBuscarServicios = array(
 				"idCliente" => $idCliente,
-				"fechaInicial" => $fechaInicial,
-				"fechaFinal" => $fechaFinal,
+				"fechaInicial" => $fechaInicial->format(DateTime::ISO8601),
+				"fechaFinal" => $fechaFinal->format(DateTime::ISO8601),
 			);
 			$result = $this->rest_client->get('servicios', $paramBuscarServicios);
 			$servicios = json_decode($result->response);
@@ -61,7 +95,7 @@
 			$servicios = $this->getServicios($idCliente, $fechaInicialRaw, $fechaFinalRaw);
 			$response = array();
 			foreach ($servicios->items as $servicio) {
-				$result = $this->rest_client->get('/reportes/global/renglones/servicio/'.$servicio->id);
+				$result = $this->rest_client->get('reportes/global/renglones/servicio/'.$servicio->id);
 				$renglon = json_decode($result->response);
 				$response[] = $renglon;
 			}
@@ -73,10 +107,10 @@
 			$servicios = $this->getServicios($idCliente, $fechaInicialRaw, $fechaFinalRaw);
 			$response = array();
 			foreach ($servicios->items as $servicio) {
-				$result = $this->rest_client->get('/reportes/global/renglones/servicio/'.$servicio->id);
+				$result = $this->rest_client->get('reportes/global/renglones/servicio/'.$servicio->id);
 				$renglonRaw = json_decode($result->response);
 				$renglon = array();
-				$renglon['folio'] = '<a href="'.$this->link_descarga_pdf.'">'.$renglonRaw->datosServicio->folio.'</a>';
+				$renglon['folio'] = '<a href="'.$this->link_descarga_pdf.$servicio->id.'" target="_blank">'.$renglonRaw->datosServicio->folio.'</a>';
 				$renglon['programado'] = $renglonRaw->datosServicio->programado;
 				if (property_exists($renglonRaw->datosBitacora ,'fechaIngresoAuto')) {
 					$fechaIngresoAuto = strtotime($renglonRaw->datosBitacora->fechaIngresoAuto);
@@ -102,10 +136,10 @@
 			$servicios = $this->getServicios($idCliente, $fechaInicialRaw, $fechaFinalRaw);
 			$response = array();
 			foreach ($servicios->items as $servicio) {
-				$result = $this->rest_client->get('/reportes/global/renglones/servicio/'.$servicio->id);
+				$result = $this->rest_client->get('reportes/global/renglones/servicio/'.$servicio->id);
 				$renglonRaw = json_decode($result->response);
 				$renglon = array();
-				$renglon['folio'] = '<a href="'.$this->link_descarga_pdf.'">'.$renglonRaw->datosServicio->folio.'</a>';
+				$renglon['folio'] = '<a href="'.$this->link_descarga_pdf.$servicio->id.'" target="_blank">'.$renglonRaw->datosServicio->folio.'</a>';
 				$renglon['marca'] = $renglonRaw->datosAuto->marca;
 				$renglon['tipo'] = $renglonRaw->datosAuto->tipo;
 				$renglon['version'] = $renglonRaw->datosAuto->version;
@@ -123,21 +157,30 @@
 			$servicios = $this->getServicios($idCliente, $fechaInicialRaw, $fechaFinalRaw);
 			$response = array();
 			foreach ($servicios->items as $servicio) {
-				$result = $this->rest_client->get('/reportes/global/renglones/servicio/'.$servicio->id);
+				$result = $this->rest_client->get('reportes/global/renglones/servicio/'.$servicio->id);
 				$renglonRaw = json_decode($result->response);
 				$renglon = array();
-				$renglon['folio'] = '<a href="'.$this->link_descarga_pdf.'">'.$renglonRaw->datosServicio->folio.'</a>';
+				$renglon['folio'] = '<a href="'.$this->link_descarga_pdf.$servicio->id.'" target="_blank">'.$renglonRaw->datosServicio->folio.'</a>';
 				$renglon['trabajoRealizado'] = $renglonRaw->datosCosto->manoDeObra;
-				$renglon['manoDeObra'] = $renglonRaw->datosCosto->manoDeObraFacturado;
-				$renglon['refacciones'] = $renglonRaw->datosCosto->refaccionesFacturado;
+				$renglon['manoDeObra'] = '$'.number_format($renglonRaw->datosCosto->manoDeObraFacturado, 2);
+				$renglon['refacciones'] = '$'.number_format($renglonRaw->datosCosto->refaccionesFacturado, 2);
 				$subtotalFacturado = $renglonRaw->datosCosto->manoDeObraFacturado + $renglonRaw->datosCosto->refaccionesFacturado;
-				$renglon['subTotal'] = $subtotalFacturado;
-				$renglon['iva'] = $renglonRaw->datosCosto->ivaFacturado;
+				$renglon['subTotal'] = '$'.number_format($subtotalFacturado, 2);
+				$renglon['iva'] = '$'.number_format($renglonRaw->datosCosto->ivaFacturado, 2);
 				$totalFacturado = $subtotalFacturado + $renglonRaw->datosCosto->ivaFacturado;
-				$renglon['total'] = $totalFacturado;
+				$renglon['total'] = '$'.number_format($totalFacturado, 2);
 				$response[] = $renglon;
 			}
 			return $response;
+		}
+		
+		public function getDatosReporteCliente($idCliente, $idServicio) {
+			$rawData = $this->rest_client->get('reportes/cliente/'.$idCliente.'/'.$idServicio);
+			if ($rawData->info->http_code == 404) {
+				throw new ReporteNoEncontradoException();
+			}
+			$datos = json_decode($rawData->response);
+			return $datos;
 		}
 	}
 ?>

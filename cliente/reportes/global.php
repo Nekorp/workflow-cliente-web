@@ -64,10 +64,12 @@ if (isset($_SESSION['idCliente'])) {
 		$fechaIngreso = '';
 		if (property_exists($renglon->datosBitacora ,'fechaIngresoAuto')) {
 			$fechaIngreso = strtotime($renglon->datosBitacora->fechaIngresoAuto);
+			$fechaIngreso = PHPExcel_Shared_Date::PHPToExcelWithoutUTC($fechaIngreso);
 		}
 		$fechaEntregaAuto = '';
 		if (property_exists($renglon->datosBitacora ,'fechaEntregaAuto')) {
 			$fechaEntregaAuto = strtotime($renglon->datosBitacora->fechaEntregaAuto);
+			$fechaEntregaAuto = PHPExcel_Shared_Date::PHPToExcelWithoutUTC($fechaEntregaAuto);
 		}
 		$subtotalFacturado = $renglon->datosCosto->manoDeObraFacturado + $renglon->datosCosto->refaccionesFacturado;
 		$totalFacturado = $subtotalFacturado + $renglon->datosCosto->ivaFacturado;
@@ -85,8 +87,8 @@ if (isset($_SESSION['idCliente'])) {
 					->setCellValueByColumnAndRow($column_index++, $row_index, $renglon->datosServicio->falla)
 					->setCellValueByColumnAndRow($column_index++, $row_index, $renglon->datosBitacora->diagnostico)
 					->setCellValueByColumnAndRow($column_index++, $row_index, $renglon->datosCosto->manoDeObra)
-					->setCellValueByColumnAndRow($column_index++, $row_index, PHPExcel_Shared_Date::PHPToExcelWithoutUTC($fechaIngreso))
-					->setCellValueByColumnAndRow($column_index++, $row_index, PHPExcel_Shared_Date::PHPToExcelWithoutUTC($fechaEntregaAuto))
+					->setCellValueByColumnAndRow($column_index++, $row_index, $fechaIngreso)
+					->setCellValueByColumnAndRow($column_index++, $row_index, $fechaEntregaAuto)
 					->setCellValueByColumnAndRow($column_index++, $row_index, $renglon->datosCosto->manoDeObraFacturado)
 					->setCellValueByColumnAndRow($column_index++, $row_index, $renglon->datosCosto->refaccionesFacturado)
 					->setCellValueByColumnAndRow($column_index++, $row_index, $subtotalFacturado)
@@ -101,6 +103,11 @@ if (isset($_SESSION['idCliente'])) {
 			$objPHPExcel->getActiveSheet()->getStyle('P'.$row_index)
 						->getNumberFormat()->setFormatCode(PHPExcel_Style_NumberFormat::FORMAT_DATE_DATETIME);
 		}
+		$objPHPExcel->getActiveSheet()->getStyle('Q'.$row_index)->getNumberFormat()->setFormatCode('$#,##0.00');
+		$objPHPExcel->getActiveSheet()->getStyle('R'.$row_index)->getNumberFormat()->setFormatCode('$#,##0.00');
+		$objPHPExcel->getActiveSheet()->getStyle('S'.$row_index)->getNumberFormat()->setFormatCode('$#,##0.00');
+		$objPHPExcel->getActiveSheet()->getStyle('T'.$row_index)->getNumberFormat()->setFormatCode('$#,##0.00');
+		$objPHPExcel->getActiveSheet()->getStyle('U'.$row_index)->getNumberFormat()->setFormatCode('$#,##0.00');
 	}
 	//autosize
 	for ($col = 'A'; $col != 'W'; $col++) {

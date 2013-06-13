@@ -18,18 +18,26 @@
 	include_once "WorkflowAPIClient.php";
 	$respuesta = array();
 	if (isset($_GET['login'])) {
-		//TODO el id del cliente podria ser cualquier cosa
-		$idCliente = $_GET['idCliente'];
-		$pswd = $_GET['pswd'];
-		$api = new WorkflowAPIClient();
-		$nombreCliente = $api->validateLogin($idCliente, $pswd);
-		//happy path
-		session_start();
-		$_SESSION['nombreCliente'] = $nombreCliente;
-		$_SESSION['idCliente'] = $idCliente;
-		//todo verificar el password contra algo
-		$respuesta['Result'] = "OK";
-		$respuesta['nombreCliente'] = "$nombreCliente";
+		try {
+			if (!isset($_GET['usuario']) || strlen($_GET['usuario']) == 0) {
+				throw new CredencialesNoValidasException();
+			}
+			if (!isset($_GET['pswd']) || strlen($_GET['pswd']) == 0) {
+				throw new CredencialesNoValidasException();
+			}
+			$usuario = $_GET['usuario'];
+			$pswd = $_GET['pswd'];
+			$api = new WorkflowAPIClient();
+			$login = $api->validateLogin($usuario, $pswd);
+			session_start();
+			$_SESSION['loginDisplay'] = $login['display'];
+			$_SESSION['idCliente'] = $login['idCliente'];
+			$_SESSION['nombreCliente'] = $login['nombreCliente'];
+			$respuesta['Result'] = "OK";
+			$respuesta['loginDisplay'] = $login['display'];
+		} catch (CredencialesNoValidasException $e) {
+			$respuesta['Result'] = "ERROR";
+		}
 	} else {
 		$respuesta['Result'] = "ERROR";
 	}

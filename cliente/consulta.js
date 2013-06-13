@@ -2,6 +2,7 @@ function showContent(value) {
 	if (value) {
 		$("#logoutForm").show();
 		$("#consultaServicios").show();
+		$("#downloadGlobal").prop('disabled', true);
 	} else {
 		$("#logoutForm").hide();
 		$("#consultaServicios").hide();
@@ -11,7 +12,7 @@ function showContent(value) {
 function switchLogin(value) {
 	if (value) {
 		$("#loginForm").show();
-		$("#idCliente").prop('disabled', false);
+		$("#usuario").prop('disabled', false);
 		$("#pswd").prop('disabled', false);
 		$("#logoutForm").hide();
 	} else {
@@ -20,40 +21,29 @@ function switchLogin(value) {
 	}
 };
 
-function setUser(userName) {
-	if(userName) {
-		$("#nombreCliente").text(userName);
-		switchLogin(false);
-		showContent(true);
-	} else {
-		$("#nombreCliente").text("");
-		$("#fechaInicial").val("");
-		$("#fechaFinal").val("");
-		$('#DatosServicioContainer').jtable('load');
-		$('#DatosAutoContainer').jtable('load');
-		$('#PresupuestoContainer').jtable('load');
-		switchLogin(true);
-		showContent(false);
-	}
+function iniciaBusqueda(userName) {
+	$("#errorReport").html("");
+	$("#loginDisplay").text(userName);
+	crearTablas();
+	switchLogin(false);
+	showContent(true);
 };
 
 function doLogin(callback) {
 	$.ajax({
 		url: "login.php",
 		data: {
-			idCliente: $("#idCliente").val(),
+			usuario: $("#usuario").val(),
 			pswd: $("#pswd").val(),
 			login: "login"
 		},
 		success: function(data){
-			$("#idCliente").val("");
+			$("#usuario").val("");
 			$("#pswd").val("");
 			callback(data);
 		},
 		dataType: "json"
 	});
-	$("#idCliente").prop('disabled', true);
-	$("#pswd").prop('disabled', true);
 };
 
 function doLogout(callback) {
@@ -79,10 +69,22 @@ function doCheckLogin(callback) {
 $("#login").click(function() {
 	var btn = $(this);
 	btn.button('loading');
+	$("#usuario").prop('disabled', true);
+	$("#pswd").prop('disabled', true);
 	doLogin(function(data) {
-		//$("#login").removeAttr("data-loading-text");
-		setUser(data.nombreCliente);
+		if (data.Result == 'ERROR') {
+			$("#errorReport").html(
+				'<div id="error1" class="alert alert-block alert-error fade in">' +
+					'<a class="close" data-dismiss="alert" href="#">&times;</a>' +
+					'<p>Usuario o password incorrectos</p>' +
+				'</div>'
+			);
+		} else {
+			iniciaBusqueda(data.loginDisplay);
+		}
 		btn.button('reset');
+		$("#usuario").prop('disabled', false);
+		$("#pswd").prop('disabled', false);
 	});
 });
 
@@ -90,13 +92,30 @@ $("#logout").click(function() {
 	var btn = $(this);
 	btn.button('loading');
 	doLogout(function(){
-		setUser();
+		destruirTablas();
+		$("#errorReport").html("");
+		$("#loginDisplay").text("");
+		$("#fechaInicial").val("");
+		$("#fechaFinal").val("");
+		switchLogin(true);
+		showContent(false);
 		btn.button('reset');
 	});
 });
 
 $("#buscar").click(function() {
 	var btn = $(this);
+	var fechaInicial = $("#fechaInicial" ).val();
+	var fechaFinal = $("#fechaFinal").val();
+	if (!fechaInicial || !fechaFinal) {
+		$("#errorReport").html(
+			'<div id="error1" class="alert alert-block alert-error fade in">' +
+				'<a class="close" data-dismiss="alert" href="#">&times;</a>' +
+				'<p>Seleccione una fecha inicial y una fecha final para su busqueda</p>' +
+			'</div>'
+		);
+		return;
+	}
 	btn.button('loading');
 	$("#downloadGlobal").prop('disabled', true);
 	var buscandoServicios = true;
@@ -145,7 +164,6 @@ $("#buscar").click(function() {
 
 function terminoDeBuscar() {
 	$("#buscar").button('reset');
-	$("#downloadGlobal").prop('disabled', false);
 	$("#fechaInicialDownloadGlobal").val($("#fechaInicial").val());
 	$("#fechaFinalDownloadGlobal").val($("#fechaFinal").val());
 }
@@ -158,7 +176,8 @@ $(function() {
 	$("#fechaInicial").datepicker({
 		dateFormat: "yy-mm-dd",
 		minDate: "-30d",
-		maxDate: "0d"
+		maxDate: "0d",
+		constrainInput: true
 	});
 });
 
@@ -166,22 +185,20 @@ $(function() {
 	$("#fechaFinal").datepicker({
 		dateFormat: "yy-mm-dd",
 		minDate: "-30d",
-		maxDate: "0d"
+		maxDate: "0d",
+		constrainInput: true
 	});
 });
 
 function checkLoginInicial() {
 	doCheckLogin(function(data) {
 		if (data.tieneSession) {
-			setUser(data.nombreCliente);
-		} else {
-			setUser();
-		}	
+			iniciaBusqueda(data.loginDisplay);
+		}
 	});
 }
 
-$(document).ready(function () {
-	checkLoginInicial();
+function crearTablas() {
 	$('#DatosServicioContainer').jtable({
 		title: 'Datos del Servicio',
 		ajaxSettings: {
@@ -221,6 +238,21 @@ $(document).ready(function () {
 				title: 'Recomendaciones',
 				width: '20%'
 			},
+		},
+		recordsLoaded: function(event,data) {
+			if (data.serverResponse.mensajeError) {
+				$("#errorReport").html(
+					'<div id="error1" class="alert alert-block alert-error fade in">' +
+						'<a class="close" data-dismiss="alert" href="#">&times;</a>' +
+						'<p>' + data.serverResponse.mensajeError + '</p>' +
+					'</div>'
+				);
+			} else {
+				$("#errorReport").html("");
+			}
+			if (data.records.length > 0) {
+				$("#downloadGlobal").prop('disabled', false);
+			}
 		}
 	});
 	$('#DatosAutoContainer').jtable({
@@ -293,24 +325,41 @@ $(document).ready(function () {
 			},
 			manoDeObra: {
 				title: 'Mano de Obra',
-				width: '13%'
+				width: '13%',
+				listClass: 'cantidad'
 			},
 			refacciones: {
 				title: 'Refacciones',
-				width: '13%'
+				width: '13%',
+				listClass: 'cantidad'
 			},
 			subTotal: {
 				title: 'Sub total',
-				width: '13%'
+				width: '13%',
+				listClass: 'cantidad'
 			},
 			iva: {
 				title: 'Iva',
-				width: '13%'
+				width: '13%',
+				listClass: 'cantidad'
 			},
 			total: {
 				title: 'Total',
-				width: '13%'
+				width: '13%',
+				listClass: 'cantidad'
 			},
 		}
 	});
+}
+function destruirTablas() {
+	try {
+		$('#DatosServicioContainer').jtable('destroy');
+		$('#DatosAutoContainer').jtable('destroy');
+		$('#PresupuestoContainer').jtable('destroy');
+	} catch(err) {
+		//no hacer nada
+	}
+}
+$(document).ready(function () {
+	checkLoginInicial();
 });

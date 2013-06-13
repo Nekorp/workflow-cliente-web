@@ -17,10 +17,10 @@
  
 	$respuesta = array();
 	session_start();
-	if (isset($_SESSION['nombreCliente'])) {
-		$nombreCliente = $_SESSION['nombreCliente'];
+	if (isset($_SESSION['idCliente'])) {
+		$loginDisplay = $_SESSION['loginDisplay'];
 		$respuesta['tieneSession'] = true;
-		$respuesta['nombreCliente'] = "$nombreCliente";
+		$respuesta['loginDisplay'] = $loginDisplay;
 	} else {
 		$respuesta['tieneSession'] = false;
 	}

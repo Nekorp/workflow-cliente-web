@@ -14,11 +14,23 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License
  */
- 
+	require_once('../cliente_config.php');
 	$respuesta = array();
-	session_start();
-	unset($_SESSION['loginDisplay']);
-	unset($_SESSION['idCliente']);
-	unset($_SESSION['nombreCliente']);
+	if (isset($_GET['login'])) {
+		$usuario = $_GET['usuario'];
+		$pswd = $_GET['pswd'];
+		if ($pswd == AdminConfig::$admin_password && $usuario == AdminConfig::$admin_user) {
+			session_start();
+			$_SESSION['admin_cliente_web'] = $usuario;
+			$respuesta['Result'] = "OK";
+			$respuesta['nombre'] = $_SESSION['admin_cliente_web'];
+		} else {
+			$respuesta['Result'] = "ERROR";
+			$respuesta['Message'] = "Login Incorrecto";
+		}
+	} else {
+		$respuesta['Result'] = "ERROR";
+		$respuesta['Message'] = "Login Incorrecto";
+	}
 	print json_encode($respuesta);
 ?>
