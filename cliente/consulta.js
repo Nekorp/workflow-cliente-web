@@ -301,7 +301,7 @@ function crearTablas() {
 			modelo: {
 				title: 'Modelo',
 				width: '10%',
-				listClass: 'texto-tabla'
+				listClass: 'cantidad-tabla'
 			},
 			color: {
 				title: 'Color',
@@ -316,7 +316,7 @@ function crearTablas() {
 			kilotraje: {
 				title: 'Kilometraje',
 				width: '15%',
-				listClass: 'texto-tabla'
+				listClass: 'cantidad-tabla'
 			},
 		}
 	});
