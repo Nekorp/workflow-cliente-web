@@ -212,31 +212,38 @@ function crearTablas() {
 			folio: {
 				title: 'Folio',
 				width: '5%',
-				key: true
+				key: true,
+				listClass: 'cantidad-tabla'
 			},
 			programado: {
 				title: 'Programado',
-				width: '5%'
+				width: '5%',
+				listClass: 'texto-tabla'
 			},
 			fechaIngresoAuto: {
 				title: 'Ingreso Auto',
-				width: '15%'
+				width: '15%',
+				listClass: 'texto-tabla'
 			},
 			fechaEntregaAuto: {
 				title: 'Entrega Auto',
-				width: '15%'
+				width: '15%',
+				listClass: 'texto-tabla'
 			},
 			falla: {
 				title: 'Falla',
-				width: '20%'
+				width: '20%',
+				listClass: 'texto-tabla'
 			},
 			diagnostico: {
 				title: 'Diagnostico',
-				width: '20%'
+				width: '20%',
+				listClass: 'texto-tabla'
 			},
 			recomendaciones: {
 				title: 'Recomendaciones',
-				width: '20%'
+				width: '20%',
+				listClass: 'texto-tabla'
 			},
 		},
 		recordsLoaded: function(event,data) {
@@ -268,39 +275,48 @@ function crearTablas() {
 			folio: {
 				title: 'Folio',
 				width: '5%',
-				key: true
+				key: true,
+				listClass: 'cantidad-tabla'
 			},
 			marca: {
 				title: 'Marca',
-				width: '10%'
+				width: '10%',
+				listClass: 'texto-tabla'
 			},
 			tipo: {
 				title: 'Tipo',
-				width: '10%'
+				width: '10%',
+				listClass: 'texto-tabla'
 			},
 			version: {
 				title: 'Version',
-				width: '10%'
+				width: '10%',
+				listClass: 'texto-tabla'
 			},
 			serie: {
 				title: 'Serie',
-				width: '15%'
+				width: '15%',
+				listClass: 'texto-tabla'
 			},
 			modelo: {
 				title: 'Modelo',
-				width: '10%'
+				width: '10%',
+				listClass: 'texto-tabla'
 			},
 			color: {
 				title: 'Color',
-				width: '10%'
+				width: '10%',
+				listClass: 'texto-tabla'
 			},
 			placas: {
 				title: 'Placas',
-				width: '15%'
+				width: '15%',
+				listClass: 'texto-tabla'
 			},
 			kilotraje: {
 				title: 'Kilometraje',
-				width: '15%'
+				width: '15%',
+				listClass: 'texto-tabla'
 			},
 		}
 	});
@@ -317,36 +333,38 @@ function crearTablas() {
 			folio: {
 				title: 'Folio',
 				width: '5%',
-				key: true
+				key: true,
+				listClass: 'cantidad-tabla'
 			},
 			trabajoRealizado: {
 				title: 'Trabajo realizado',
-				width: '30%'
+				width: '29%',
+				listClass: 'texto-tabla'
 			},
 			manoDeObra: {
 				title: 'Mano de Obra',
-				width: '13%',
-				listClass: 'cantidad'
+				width: '14%',
+				listClass: 'cantidad-tabla',
 			},
 			refacciones: {
 				title: 'Refacciones',
 				width: '13%',
-				listClass: 'cantidad'
+				listClass: 'cantidad-tabla'
 			},
 			subTotal: {
 				title: 'Sub total',
 				width: '13%',
-				listClass: 'cantidad'
+				listClass: 'cantidad-tabla'
 			},
 			iva: {
 				title: 'Iva',
 				width: '13%',
-				listClass: 'cantidad'
+				listClass: 'cantidad-tabla'
 			},
 			total: {
 				title: 'Total',
 				width: '13%',
-				listClass: 'cantidad'
+				listClass: 'cantidad-tabla'
 			},
 		}
 	});

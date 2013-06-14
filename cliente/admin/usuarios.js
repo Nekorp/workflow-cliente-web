@@ -132,7 +132,8 @@ function crearTablas() {
 				title: 'Nombre',
 				width: '34%',
 				create: true,
-				key: true
+				key: true,
+				listClass: 'texto-tabla'
 			},
 			password: {
 				title: 'Password',
@@ -142,12 +143,14 @@ function crearTablas() {
 			idCliente: {
 				title: 'Cliente',
 				options: 'lista_clientes.php',
-				width: '33%'
+				width: '33%',
+				listClass: 'texto-tabla'
 			},
 			status: {
 				title: 'Status',
 				options: {'activo': 'Activo', 'inactivo': 'Inactivo'},
-				width: '33%'
+				width: '33%',
+				listClass: 'texto-tabla'
 			}
 		}
 	});
